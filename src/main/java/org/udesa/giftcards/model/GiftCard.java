@@ -16,12 +16,16 @@ import org.udesa.tuslibros.model.ModelEntity;
 public class GiftCard extends ModelEntity {
     public static final String CargoImposible = "CargoImposible";
     public static final String InvalidCard = "InvalidCard";
+
     @Column(name = "code", nullable = false, unique = true)
     private String code;
+
     @Column(name = "balance", nullable = false)
     private int balance;
+
     @Column(name = "owner")
     private String owner;
+    
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "gift_card_charges", joinColumns = @JoinColumn(name = "gift_card_id"))
     @Column(name = "description")
