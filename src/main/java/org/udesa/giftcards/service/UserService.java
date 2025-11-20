@@ -15,11 +15,9 @@ public class UserService extends ModelService<UserVault, UserRepository> {
     }
 
     @Transactional
-    public UserVault update(Long id, UserVault updatedObject) {
-        UserVault existing = getById(id);
-        existing.setName(updatedObject.getName());
-        existing.setPassword(updatedObject.getPassword());
-        return repository.save(existing);
+    public void update(UserVault existingObject, UserVault updatedObject) {
+        existingObject.setName( updatedObject.getName() );
+        existingObject.setPassword( updatedObject.getPassword() );
     }
 
     @Transactional
@@ -38,12 +36,4 @@ public class UserService extends ModelService<UserVault, UserRepository> {
                 .orElseThrow(() -> new RuntimeException("InvalidUser"));
     }
 
-    @Transactional(readOnly = true)
-    public UserVault validateCredentials(String name, String password) {
-        UserVault user = findByName(name);
-        if (!user.getPassword().equals(password)) {
-            throw new RuntimeException("InvalidUser");
-        }
-        return user;
-    }
 }

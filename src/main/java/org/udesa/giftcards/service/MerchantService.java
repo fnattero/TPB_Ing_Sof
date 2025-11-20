@@ -15,11 +15,9 @@ public class MerchantService extends ModelService<Merchant, MerchantRepository> 
     }
 
     @Transactional
-    public Merchant update(Long id, Merchant updatedObject) {
-        Merchant existing = getById(id);
-        existing.setCode(updatedObject.getCode());
-        existing.setDescription(updatedObject.getDescription());
-        return repository.save(existing);
+    public void update(Merchant existingObject, Merchant updatedObject) {
+        existingObject.setCode(updatedObject.getCode());
+        existingObject.setDescription(updatedObject.getDescription());
     }
 
     @Transactional

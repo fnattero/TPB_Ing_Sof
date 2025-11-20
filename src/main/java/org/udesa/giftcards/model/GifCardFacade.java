@@ -1,10 +1,14 @@
 package org.udesa.giftcards.model;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.udesa.giftcards.service.CardService;
 import org.udesa.giftcards.service.MerchantService;
 import org.udesa.giftcards.service.UserService;
@@ -15,25 +19,25 @@ public class GifCardFacade {
     public static final String InvalidMerchant = "InvalidMerchant";
     public static final String InvalidToken = "InvalidToken";
 
-    private final CardService cardService;
-    private final MerchantService merchantService;
-    private final UserService userService;
-    private final Clock clock;
+    @Autowired private CardService cardService;
+    @Autowired private MerchantService merchantService;
+    @Autowired private UserService userService;
+    @Autowired private Clock clock;
 
-    private final Map<UUID, UserSession> sessions = new ConcurrentHashMap<>();
+    private final Map<UUID, UserSession> sessions = new HashMap<>();
 
-    public GifCardFacade(CardService cardService,
-                         MerchantService merchantService,
-                         UserService userService,
-                         Clock clock) {
-        this.cardService = cardService;
-        this.merchantService = merchantService;
-        this.userService = userService;
-        this.clock = clock;
-    }
+//    public GifCardFacade(CardService cardService,
+//                         MerchantService merchantService,
+//                         UserService userService,
+//                         Clock clock) {
+//        this.cardService = cardService;
+//        this.merchantService = merchantService;
+//        this.userService = userService;
+//        this.clock = clock;
+//    }
 
     public UUID login( String userKey, String pass ) {
-        String userName = userService.validateCredentials(userKey, pass).getName();
+        String userName = validateUserCredentials(userKey, pass);
         UUID token = UUID.randomUUID();
         sessions.put( token, new UserSession( userName, clock ) );
         return token;
@@ -65,5 +69,12 @@ public class GifCardFacade {
     private String findUser( UUID token ) {
         return sessions.computeIfAbsent( token, key -> { throw new RuntimeException( InvalidToken ); } )
                        .userAliveAt( clock );
+    }
+
+    private String validateUserCredentials( String user, String password ) {
+        if (!userService.findByName(user).getPassword().equals(password)) {
+            throw new RuntimeException(InvalidUser);
+        }
+        return userService.findByName(user).getName();
     }
 }

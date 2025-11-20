@@ -12,7 +12,7 @@ import java.util.List;
 import org.udesa.tuslibros.model.ModelEntity;
 
 @Entity
-@Table(name = "gift_cards")
+@Table
 public class GiftCard extends ModelEntity {
     public static final String CargoImposible = "CargoImposible";
     public static final String InvalidCard = "InvalidCard";
@@ -26,8 +26,6 @@ public class GiftCard extends ModelEntity {
     @Column(name = "owner")
     private String owner;
     
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "gift_card_charges", joinColumns = @JoinColumn(name = "gift_card_id"))
     @Column(name = "description")
     private List<String> charges = new ArrayList<>();
 
@@ -54,11 +52,9 @@ public class GiftCard extends ModelEntity {
         return this;
     }
 
-    // proyectors
     public boolean owned() {                            return owner != null;                   }
     public boolean isOwnedBy( String aPossibleOwner ) { return owner != null && owner.equals( aPossibleOwner );  }
 
-    // accessors
     public String id() {            return code;      }
     public int balance() {          return balance; }
     public List<String> charges() { return charges; }

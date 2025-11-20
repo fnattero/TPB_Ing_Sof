@@ -41,7 +41,6 @@ public abstract class ModelService<
         repository.deleteAll();
     }
 
-    @SuppressWarnings("unchecked")
     public Class<M> getModelClass() {
         return (Class<M>) ((ParameterizedType) getClass()
                 .getGenericSuperclass())
