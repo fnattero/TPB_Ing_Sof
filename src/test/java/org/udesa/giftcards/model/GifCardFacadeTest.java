@@ -155,7 +155,7 @@ public class GifCardFacadeTest {
         GiftCard giftCard = savedGiftCard1();
         Merchant merchant = savedMerchant();
 
-        UUID token = loginAndRedeem(user, giftCard);
+        loginAndRedeem(user, giftCard);
 
         assertThrows(RuntimeException.class, () -> facade.charge(merchant.getCode(), giftCard.getCode(), 11, "UnCargo"));
     }
