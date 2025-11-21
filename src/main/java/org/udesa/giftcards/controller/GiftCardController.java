@@ -15,6 +15,11 @@ public class GiftCardController {
 
     @Autowired GifCardFacade systemFacade;
 
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<String> handleIllegalArgument( RuntimeException ex ) {
+        return ResponseEntity.internalServerError().body( ex.getMessage() );
+    }
+
 //    POST /api/giftcards/login?user=aUser&pass=aPassword
 //    Devuelve un token válido
     @PostMapping("/login") 
