@@ -33,6 +33,7 @@ public class GifCardFacadeTest {
 
     private final String invalidGiftCardCode = "invalidGiftCardCode";
     private final String invalidMerchantCode = "invalidMerchantCode";
+    private final String wrongPassword = "WrongPass";
 
     @BeforeEach public void beforeEach() {
         when( clock.now() ).then( it -> LocalDateTime.now() );
@@ -79,6 +80,11 @@ public class GifCardFacadeTest {
 
     @Test public void unkownUserCannorOpenASession() {
         assertThrows(RuntimeException.class, () -> facade.login("Stuart", "StuPass"));
+    }
+
+    @Test public void userCannotLoginWithWrongPassword() {
+        UserVault user = savedUser();
+        assertThrows(RuntimeException.class, () -> facade.login(user.getName(), wrongPassword));
     }
 
     @Test public void userCannotUseAnInvalidtoken() {

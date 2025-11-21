@@ -13,6 +13,7 @@ public class GiftCardTest {
     private static final int CHARGE_AMOUNT = 2;
     private static final int OVERCHARGE_AMOUNT = 11;
     private static final String OWNER = "Bob";
+    private static final String OTHER_OWNER = "Carol";
     private static final String CHARGE_DESC = "Un cargo";
 
     @Test public void aSimpleCard() {
@@ -36,6 +37,13 @@ public class GiftCardTest {
         aCard.charge( CHARGE_AMOUNT, CHARGE_DESC );
         assertEquals( INITIAL_BALANCE - CHARGE_AMOUNT, aCard.balance() );
         assertEquals( CHARGE_DESC, aCard.charges().getLast() );
+    }
+
+    @Test public void cannotRedeemOwnedCard() {
+        GiftCard aCard = newCard();
+        aCard.redeem( OWNER );
+        assertThrows( RuntimeException.class, () -> aCard.redeem( OTHER_OWNER ) );
+        assertTrue( aCard.isOwnedBy( OWNER ) );
     }
 
     @Test public void cannotOverrunACard() {
