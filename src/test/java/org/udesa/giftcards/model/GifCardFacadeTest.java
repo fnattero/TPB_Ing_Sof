@@ -7,8 +7,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 import java.time.LocalDateTime;
 import java.util.UUID;
+
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -20,6 +23,7 @@ import org.udesa.giftcards.service.UserService;
 
 @SpringBootTest
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class GifCardFacadeTest {
 
     @Autowired private GifCardFacade facade;
@@ -45,6 +49,14 @@ public class GifCardFacadeTest {
 
         merchantService.save(new Merchant("M1", "Merchant 1"));
     }
+
+    @AfterAll
+    void tearDown() {
+        cardService.deleteAll();
+        userService.deleteAll();
+        merchantService.deleteAll();
+    }
+
 
     @Test public void userCanOpenASession() {
         assertNotNull(facade.login("Bob", "BobPass"));

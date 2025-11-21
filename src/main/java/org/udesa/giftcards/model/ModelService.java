@@ -1,6 +1,6 @@
-package org.udesa.tuslibros.service;
+package org.udesa.giftcards.model;
 
-import org.udesa.tuslibros.model.ModelEntity;
+import org.udesa.giftcards.model.ModelEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,14 +36,35 @@ public abstract class ModelService<
         return repository.findById(id).orElseGet(supplier);
     }
 
-    @Transactional
-    public void deleteAll() {
-        repository.deleteAll();
-    }
-
     public Class<M> getModelClass() {
         return (Class<M>) ((ParameterizedType) getClass()
                 .getGenericSuperclass())
                 .getActualTypeArguments()[0];
     }
+
+    public M save( M model ) {
+        return repository.save( model );
+    }
+
+    public M update( Long id, M updatedObject ) {
+        M object = getById( id );
+        updateData( object, updatedObject );
+        return save( object );
+    }
+
+    protected abstract void updateData( M existingObject, M updatedObject) ;
+
+    public void delete( long id ) {
+        repository.deleteById( id );
+    }
+
+    public void delete( M model ) {
+        repository.delete( model );
+    }
+
+    @Transactional
+    public void deleteAll() {
+        repository.deleteAll();
+    }
+
 }

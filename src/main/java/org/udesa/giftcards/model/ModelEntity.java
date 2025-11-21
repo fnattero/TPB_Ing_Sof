@@ -1,4 +1,4 @@
-package org.udesa.tuslibros.model;
+package org.udesa.giftcards.model;
 
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -14,19 +14,18 @@ public abstract class ModelEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    protected long id;
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        ModelEntity that = (ModelEntity) o;
-        return id != null && id.equals(that.id);
+    public boolean equals( Object o ) {
+        return this == o ||
+                o != null && id != 0 &&
+                        getClass() == o.getClass() && id == getClass().cast( o ).getId() &&
+                        same( o );
     }
 
-    @Override
     public int hashCode() {
-        return (id == null) ? 0 : id.hashCode();
+        return Long.hashCode( id );
     }
+
+    protected boolean same( Object o ) { return true; }
 }

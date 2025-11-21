@@ -4,11 +4,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.udesa.giftcards.service.CardService;
 import org.udesa.giftcards.service.MerchantService;
 import org.udesa.giftcards.service.UserService;
@@ -25,16 +23,6 @@ public class GifCardFacade {
     @Autowired private Clock clock;
 
     private final Map<UUID, UserSession> sessions = new HashMap<>();
-
-//    public GifCardFacade(CardService cardService,
-//                         MerchantService merchantService,
-//                         UserService userService,
-//                         Clock clock) {
-//        this.cardService = cardService;
-//        this.merchantService = merchantService;
-//        this.userService = userService;
-//        this.clock = clock;
-//    }
 
     public UUID login( String userKey, String pass ) {
         String userName = validateUserCredentials(userKey, pass);
@@ -61,9 +49,8 @@ public class GifCardFacade {
     }
 
     private GiftCard ownedCard( UUID token, String cardId ) {
-        GiftCard card = cardService.getByCode( cardId );
-        if ( !card.isOwnedBy( findUser( token ) ) ) throw new RuntimeException( InvalidToken );
-        return card;
+        if ( !cardService.findByCode( cardId ).isOwnedBy( findUser( token ) ) ) throw new RuntimeException( InvalidToken );
+        return cardService.findByCode( cardId );
     }
 
     private String findUser( UUID token ) {

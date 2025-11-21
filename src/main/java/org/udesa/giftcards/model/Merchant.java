@@ -5,10 +5,10 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
-import org.udesa.tuslibros.model.ModelEntity;
+import org.udesa.giftcards.model.ModelEntity;
 
 @Entity
-@Table(name = "merchants")
+@Table
 @Getter
 @Setter
 public class Merchant extends ModelEntity {

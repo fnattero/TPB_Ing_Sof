@@ -1,33 +1,32 @@
 package org.udesa.giftcards.model;
 
-import jakarta.persistence.CollectionTable;
-import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+
 import java.util.ArrayList;
 import java.util.List;
-import org.udesa.tuslibros.model.ModelEntity;
+
+import lombok.Getter;
+import lombok.Setter;
+import org.udesa.giftcards.model.ModelEntity;
 
 @Entity
 @Table
+@Getter
+@Setter
 public class GiftCard extends ModelEntity {
     public static final String CargoImposible = "CargoImposible";
     public static final String InvalidCard = "InvalidCard";
 
-    @Column(name = "code", nullable = false, unique = true)
+    @Column(nullable = false, unique = true)
     private String code;
 
-    @Column(name = "balance", nullable = false)
+    @Column(nullable = false)
     private int balance;
 
-    @Column(name = "owner")
     private String owner;
-    
-    @Column(name = "description")
-    private List<String> charges = new ArrayList<>();
+
+    @OneToMany(mappedBy = "card", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    private List<Charge> charges = new ArrayList<>();
 
     public GiftCard( String id, int initialBalance ) {
         this.code = id;
@@ -40,7 +39,9 @@ public class GiftCard extends ModelEntity {
         if ( !owned() || ( balance - anAmount < 0 ) ) throw new RuntimeException( CargoImposible );
 
         balance = balance - anAmount;
-        charges.add( description );
+        Charge charge = new Charge( description );
+        charge.setCard( this );
+        charges.add( charge );
 
         return this;
     }
@@ -53,10 +54,10 @@ public class GiftCard extends ModelEntity {
     }
 
     public boolean owned() {                            return owner != null;                   }
-    public boolean isOwnedBy( String aPossibleOwner ) { return owner != null && owner.equals( aPossibleOwner );  }
+    public boolean isOwnedBy( String aPossibleOwner ) { return owner.equals( aPossibleOwner );  }
 
     public String id() {            return code;      }
     public int balance() {          return balance; }
-    public List<String> charges() { return charges; }
+    public List<String> charges() { return charges.stream().map( Charge::getDescription ).toList(); }
 
 }
