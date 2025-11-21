@@ -56,7 +56,6 @@ public class GiftCard extends ModelEntity {
     public boolean owned() {                            return owner != null;                   }
     public boolean isOwnedBy( String aPossibleOwner ) { return owner.equals( aPossibleOwner );  }
 
-    public String id() {            return code;      }
     public int balance() {          return balance; }
     public List<String> charges() { return charges.stream().map( Charge::getDescription ).toList(); }
 
