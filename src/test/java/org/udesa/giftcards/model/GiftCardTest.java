@@ -8,8 +8,15 @@ import org.junit.jupiter.api.Test;
 
 public class GiftCardTest {
 
+    private static final String CARD_CODE = "GC1";
+    private static final int INITIAL_BALANCE = 10;
+    private static final int CHARGE_AMOUNT = 2;
+    private static final int OVERCHARGE_AMOUNT = 11;
+    private static final String OWNER = "Bob";
+    private static final String CHARGE_DESC = "Un cargo";
+
     @Test public void aSimpleCard() {
-        assertEquals( 10, newCard().balance() );
+        assertEquals( INITIAL_BALANCE, newCard().balance() );
     }
 
     @Test public void aSimpleIsNotOwnedCard() {
@@ -18,27 +25,27 @@ public class GiftCardTest {
 
     @Test public void cannotChargeUnownedCards() {
         GiftCard aCard = newCard();
-        assertThrows( RuntimeException.class, () -> aCard.charge( 2, "Un cargo" ) );
-        assertEquals( 10, aCard.balance() );
+        assertThrows( RuntimeException.class, () -> aCard.charge( CHARGE_AMOUNT, CHARGE_DESC ) );
+        assertEquals( INITIAL_BALANCE, aCard.balance() );
         assertTrue( aCard.charges().isEmpty() );
     }
 
     @Test public void chargeACard() {
         GiftCard aCard = newCard();
-        aCard.redeem( "Bob" );
-        aCard.charge( 2, "Un cargo" );
-        assertEquals( 8, aCard.balance() );
-        assertEquals( "Un cargo", aCard.charges().getLast() );
+        aCard.redeem( OWNER );
+        aCard.charge( CHARGE_AMOUNT, CHARGE_DESC );
+        assertEquals( INITIAL_BALANCE - CHARGE_AMOUNT, aCard.balance() );
+        assertEquals( CHARGE_DESC, aCard.charges().getLast() );
     }
 
     @Test public void cannotOverrunACard() {
         GiftCard aCard = newCard();
-        assertThrows( RuntimeException.class, () -> aCard.charge( 11, "Un cargo" ) );
-        assertEquals( 10, aCard.balance() );
+        assertThrows( RuntimeException.class, () -> aCard.charge( OVERCHARGE_AMOUNT, CHARGE_DESC ) );
+        assertEquals( INITIAL_BALANCE, aCard.balance() );
     }
 
     private GiftCard newCard() {
-        return new GiftCard( "GC1", 10 );
+        return new GiftCard( CARD_CODE, INITIAL_BALANCE );
     }
 
 }
