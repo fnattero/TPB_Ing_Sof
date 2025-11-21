@@ -6,7 +6,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.lang.reflect.ParameterizedType;
+import java.util.List;
 import java.util.function.Supplier;
+import java.util.stream.StreamSupport;
 
 public abstract class ModelService<
         M extends ModelEntity,
@@ -17,9 +19,10 @@ public abstract class ModelService<
     protected R repository;
 
     @Transactional(readOnly = true)
-    public Iterable<M> findAll() {
-        return repository.findAll();
+    public List<M> findAll() {
+        return StreamSupport.stream( repository.findAll().spliterator(), false ).toList();
     }
+
 
     @Transactional(readOnly = true)
     public M getById(long id) {
@@ -32,8 +35,8 @@ public abstract class ModelService<
     }
 
     @Transactional(readOnly = true)
-    public M getById(long id, Supplier<? extends M> supplier) {
-        return repository.findById(id).orElseGet(supplier);
+    public M getById( long id, Supplier<? extends M> supplier ) {
+        return repository.findById( id ).orElseGet( supplier );
     }
 
     public Class<M> getModelClass() {
