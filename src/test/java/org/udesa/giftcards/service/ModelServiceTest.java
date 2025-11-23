@@ -1,4 +1,4 @@
-package org.udesa.giftcards.model;
+package org.udesa.giftcards.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -6,16 +6,19 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.List;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.udesa.giftcards.entities.ModelEntity;
 
 public abstract class ModelServiceTest<M extends ModelEntity, S extends ModelService<M, ? extends JpaRepository<M, Long>>> {
 
     @Autowired protected S service;
+    M model;
 
     protected abstract M newSample() ;
-    protected abstract M updateUser( M user );
+    protected abstract M updateSample( M sample );
 
     protected M savedSample() {
         return service.save( newSample() );
@@ -32,7 +35,7 @@ public abstract class ModelServiceTest<M extends ModelEntity, S extends ModelSer
     @Test public void testEntityUpdate() {
         M model = newSample();
 
-        updateUser( model );
+        updateSample( model );
         service.save( model );
         M retrieved = service.getById( model.getId() );
         assertEquals( model, retrieved );

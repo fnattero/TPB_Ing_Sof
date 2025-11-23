@@ -1,11 +1,10 @@
-package org.udesa.giftcards.model;
+package org.udesa.giftcards.entities;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
-import org.udesa.giftcards.model.ModelEntity;
 
 @Entity
 @Table
@@ -13,7 +12,7 @@ import org.udesa.giftcards.model.ModelEntity;
 @Setter
 public class UserVault extends ModelEntity {
 
-    @Column(nullable = false, unique = true)
+    @Column(unique = true)
     private String name;
 
     @Column(nullable = false)
@@ -26,4 +25,6 @@ public class UserVault extends ModelEntity {
         this.name = name;
         this.password = password;
     }
+
+    protected boolean same( Object o ) { return this.name.equals( getClass().cast( o ).getName() ); }
 }

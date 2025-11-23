@@ -2,22 +2,14 @@ package org.udesa.giftcards.service;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.udesa.giftcards.model.Merchant;
+import org.udesa.giftcards.entities.Merchant;
 import org.udesa.giftcards.repository.MerchantRepository;
-import org.udesa.giftcards.model.ModelService;
 
 @Service
 public class MerchantService extends ModelService<Merchant, MerchantRepository> {
 
-    @Transactional
-    public Merchant save(Merchant model) {
-        return repository.save(model);
-    }
-
-    @Transactional
-    public void updateData(Merchant existingObject, Merchant updatedObject) {
-        existingObject.setCode(updatedObject.getCode());
-        existingObject.setDescription(updatedObject.getDescription());
+    public void deleteItemWithPrefix(String prefix) {
+        this.findAll().stream().filter(item -> item.getCode().startsWith(prefix)).forEach(this::delete);
     }
 
     @Transactional(readOnly = true)

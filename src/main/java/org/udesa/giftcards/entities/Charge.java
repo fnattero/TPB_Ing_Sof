@@ -1,4 +1,4 @@
-package org.udesa.giftcards.model;
+package org.udesa.giftcards.entities;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;

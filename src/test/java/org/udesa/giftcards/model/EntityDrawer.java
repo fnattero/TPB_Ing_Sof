@@ -1,5 +1,10 @@
 package org.udesa.giftcards.model;
 
+import org.udesa.giftcards.entities.Charge;
+import org.udesa.giftcards.entities.GiftCard;
+import org.udesa.giftcards.entities.Merchant;
+import org.udesa.giftcards.entities.UserVault;
+
 import java.time.Instant;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -18,7 +23,7 @@ public final class EntityDrawer {
     }
 
     public static Merchant someMerchant() {
-        return new Merchant("M" + nextSuffix(), "Merchant " + nextSuffix());
+        return new Merchant("M_" + nextSuffix(), "Merchant " + nextSuffix());
     }
 
     public static GiftCard someGiftCard() {

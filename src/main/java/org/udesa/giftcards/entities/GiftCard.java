@@ -1,4 +1,4 @@
-package org.udesa.giftcards.model;
+package org.udesa.giftcards.entities;
 
 import jakarta.persistence.*;
 
@@ -7,7 +7,6 @@ import java.util.List;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.udesa.giftcards.model.ModelEntity;
 
 @Entity
 @Table
@@ -17,7 +16,7 @@ public class GiftCard extends ModelEntity {
     public static final String CargoImposible = "CargoImposible";
     public static final String InvalidCard = "InvalidCard";
 
-    @Column(nullable = false, unique = true)
+    @Column(unique = true)
     private String code;
 
     @Column(nullable = false)
@@ -53,10 +52,9 @@ public class GiftCard extends ModelEntity {
         return this;
     }
 
+    protected boolean same( Object o ) { return this.code.equals( getClass().cast( o ).getCode() ); }
     public boolean owned() {                            return owner != null;                   }
     public boolean isOwnedBy( String aPossibleOwner ) { return owner.equals( aPossibleOwner );  }
-
-    public int balance() {          return balance; }
     public List<String> charges() { return charges.stream().map( Charge::getDescription ).toList(); }
 
 }

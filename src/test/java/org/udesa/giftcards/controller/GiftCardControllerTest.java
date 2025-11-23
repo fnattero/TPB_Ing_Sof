@@ -14,8 +14,11 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
+
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -23,223 +26,175 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.udesa.giftcards.model.Clock;
 import org.udesa.giftcards.model.EntityDrawer;
-import org.udesa.giftcards.model.GiftCard;
-import org.udesa.giftcards.model.Merchant;
-import org.udesa.giftcards.model.UserVault;
-import org.udesa.giftcards.service.CardService;
+import org.udesa.giftcards.entities.GiftCard;
+import org.udesa.giftcards.entities.Merchant;
+import org.udesa.giftcards.entities.UserVault;
+import org.udesa.giftcards.service.GiftCardService;
 import org.udesa.giftcards.service.MerchantService;
 import org.udesa.giftcards.service.UserService;
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class GiftCardControllerTest {
 
-    private static final int INITIAL_BALANCE = 10;
-    private static final int A_CHARGE_AMOUNT = 3;
-    private static final String BAD_AUTH_HEADER = "badAuthHeader";
-    private static final String FIRST_CHARGE = "Charge1";
-    private static final String SECOND_CHARGE = "Charge2";
-    private static final String invalid_user = "invalid user";
-    private static final String invalid_password = "invalid password";
-    private static final String invalid_code = "invalid code";
+    private static final int initialBalance = 10;
+    private static final int chargeAmount = 3;
+    private static final String badAuthHeader = "badAuthHeader";
+    private static final String firstCharge = "Charge1";
+    private static final String secondCharge = "Charge2";
+    private static final String invalidUser = "invalid user";
+    private static final String invalidPassword = "invalid password";
+    private static final String invalidCode = "invalid code";
     private static final String invalidMerchant = "invalid merchant";
 
     @Autowired MockMvc mockMvc;
     @Autowired UserService userService;
     @Autowired MerchantService merchantService;
-    @Autowired CardService cardService;
+    @Autowired GiftCardService giftCardService;
     @MockBean Clock clock;
 
+    UserVault user;
+    UserVault user2;
+    GiftCard card;
+    GiftCard card2;
+    Merchant merchant;
+    UUID token;
+    UUID token2;
+
     @BeforeEach
-    public void beforeEach() {
+    public void beforeEach() throws Exception {
         when( clock.now() ).then( it -> LocalDateTime.now() );
         when( clock.today() ).then( it -> LocalDate.now() );
+        user = savedUser();
+        user2 = savedUser();
+        card = savedCard();
+        card2 = savedCard();
+        merchant = savedMerchant();
+        token = UUID.fromString( loginOk( user ) );
+        token2 = UUID.fromString( loginOk( user2 ) );
+        redeemOk( token, card.getCode() );
+    }
+
+    @AfterAll
+    public void tearDown() {
+        giftCardService.deleteItemWithPrefix("GC");
+        userService.deleteItemWithPrefix("User");
+        merchantService.deleteItemWithPrefix("M_");
+
+        // ver el swagger
+        // ver el h2
     }
 
     @Test public void loginReturnsAToken() throws Exception {
-        UUID token = UUID.fromString( loginOk( savedUser() ) );
         assertTrue( token.toString().length() > 0 );
     }
 
     @Test
     public void loginFailsWithInvalidUsername() throws Exception {
-        UserVault validUser = savedUser();
-        UserVault invalidUser = new UserVault(invalid_user, validUser.getPassword());
+        UserVault invalidUser = new UserVault(GiftCardControllerTest.invalidUser, user.getPassword());
         loginFails( invalidUser );
     }
 
     @Test
     public void loginFailsWithInvalidPassword() throws Exception {
-        UserVault validUser = savedUser();
-        UserVault invalidUser = new UserVault(validUser.getName(), invalid_password);
+        UserVault invalidUser = new UserVault(user.getName(), invalidPassword);
         loginFails( invalidUser );
     }
 
     @Test public void redeemUsesBearerToken() throws Exception {
-        UserVault user = savedUser();
-        GiftCard card = savedCard();
-        UUID token = UUID.fromString( loginOk( user ) );
+        assertEquals( user.getName(), giftCardService.findByCode( card.getCode() ).getOwner() );
+    }
 
-        redeemOk( token, card.getCode() );
-
-        assertEquals( user.getName(), cardService.findByCode( card.getCode() ).getOwner() );
+    @Test public void redeemTwiceWorks() throws Exception {
+        redeemOk( token, card2.getCode() );
+        assertEquals( user.getName(), giftCardService.findByCode( card.getCode() ).getOwner() );
+        assertEquals( user.getName(), giftCardService.findByCode( card2.getCode() ).getOwner() );
     }
 
     @Test public void redeemFailsWithoutBearerHeader() throws Exception {
-        GiftCard card = savedCard();
         mockMvc.perform( post( "/" + card.getCode() + "/redeem" )
-                                 .header( "Authorization", BAD_AUTH_HEADER ) )
+                                 .header( "Authorization", badAuthHeader) )
                 .andDo( print() )
                 .andExpect( status().is( 500 ) );
     }
 
     @Test public void redeemFailsWithInvalidCardId() throws Exception {
-        UserVault user = savedUser();
-        UUID token = UUID.fromString( loginOk( user ) );
-        redeemFails( token, invalid_code );
+        redeemFails( token, invalidCode);
     }
 
     @Test public void redeemFailsWithInvalidToken() throws Exception {
-        UserVault user = savedUser();
-        GiftCard card = savedCard();
-
         redeemFails( UUID.randomUUID(), card.getCode() );
     }
 
     @Test public void balanceReflectsCharges() throws Exception {
-        UserVault user = savedUser();
-        GiftCard card = savedCard();
-        Merchant merchant = savedMerchant();
-        UUID token = UUID.fromString( loginOk( user ) );
+        chargeOk( merchant.getCode(), card.getCode(), chargeAmount, "UnCargo" );
 
-        redeemOk( token, card.getCode() );
-        chargeOk( merchant.getCode(), card.getCode(), A_CHARGE_AMOUNT, "UnCargo" );
-
-        assertEquals( INITIAL_BALANCE - A_CHARGE_AMOUNT, balanceOf( token, card.getCode() ) );
+        assertEquals( initialBalance - chargeAmount, balanceOf( token, card.getCode() ) );
     }
 
     @Test public void balanceFailsWIthInvalidToken() throws Exception {
-        UserVault user = savedUser();
-        GiftCard card = savedCard();
-        Merchant merchant = savedMerchant();
-        UUID token = UUID.fromString( loginOk( user ) );
-
-        redeemOk( token, card.getCode() );
-        chargeOk( merchant.getCode(), card.getCode(), A_CHARGE_AMOUNT, "UnCargo" );
-
+        chargeOk( merchant.getCode(), card.getCode(), chargeAmount, "UnCargo" );
         balanceFails( UUID.randomUUID(), card.getCode() );
     }
 
     @Test public void balanceFailsWithInvalidCardId() throws Exception {
-        UserVault user = savedUser();
-        GiftCard card = savedCard();
-        Merchant merchant = savedMerchant();
-        UUID token = UUID.fromString( loginOk( user ) );
-
-        redeemOk( token, card.getCode() );
-        chargeOk( merchant.getCode(), card.getCode(), A_CHARGE_AMOUNT, "UnCargo" );
-
-        balanceFails(token, invalid_code );
+        chargeOk( merchant.getCode(), card.getCode(), chargeAmount, "UnCargo" );
+        balanceFails(token, invalidCode);
     }
 
     @Test public void detailsReturnCharges() throws Exception {
-        UserVault user = savedUser();
-        GiftCard card = savedCard();
-        Merchant merchant = savedMerchant();
-        UUID token = UUID.fromString( loginOk( user ) );
-
-        redeemOk( token, card.getCode() );
-        chargeOk( merchant.getCode(), card.getCode(), 1, FIRST_CHARGE );
-        chargeOk( merchant.getCode(), card.getCode(), 1, SECOND_CHARGE );
+        chargeOk( merchant.getCode(), card.getCode(), 1, firstCharge);
+        chargeOk( merchant.getCode(), card.getCode(), 1, secondCharge);
 
         List<String> details = detailsOk( token, card.getCode() );
 
-        assertEquals( FIRST_CHARGE, details.getFirst() );
-        assertEquals( SECOND_CHARGE, details.getLast() );
+        assertEquals(firstCharge, details.getFirst() );
+        assertEquals(secondCharge, details.getLast() );
         assertEquals( 2, details.size() );
     }
 
     @Test public void detailsReturnChargesMultipleUsers() throws Exception {
-        UserVault user = savedUser();
-        GiftCard card = savedCard();
-
-        UserVault user2 = savedUser();
-        GiftCard card2 = savedCard();
-
-        Merchant merchant = savedMerchant();
-
-        UUID token = UUID.fromString( loginOk( user ) );
-        UUID token2 = UUID.fromString( loginOk( user2 ) );
-
-        redeemOk( token, card.getCode() );
-        redeemOk( token2, card2.getCode() );
-
-        chargeOk( merchant.getCode(), card.getCode(), 1, FIRST_CHARGE );
-        chargeOk( merchant.getCode(), card.getCode(), 1, SECOND_CHARGE );
-        chargeOk( merchant.getCode(), card2.getCode(), 1, FIRST_CHARGE );
+        redeemOk(token2, card2.getCode());
+        chargeOk( merchant.getCode(), card.getCode(), 1, firstCharge);
+        chargeOk( merchant.getCode(), card.getCode(), 1, secondCharge);
+        chargeOk( merchant.getCode(), card2.getCode(), 1, firstCharge);
 
         List<String> details = detailsOk( token, card.getCode() );
         List<String> details2 = detailsOk( token2, card2.getCode() );
 
-        assertEquals( FIRST_CHARGE, details.getFirst() );
-        assertEquals( SECOND_CHARGE, details.getLast() );
+        assertEquals(firstCharge, details.getFirst() );
+        assertEquals(secondCharge, details.getLast() );
         assertEquals( 2, details.size() );
 
-        assertEquals( FIRST_CHARGE, details2.getFirst() );
+        assertEquals(firstCharge, details2.getFirst() );
         assertEquals( 1, details2.size() );
     }
 
+    @Test public void detailsReturnsEmptyCharg() throws Exception {
+        assertTrue(detailsOk( token, card.getCode() ).isEmpty() );
+    }
+
     @Test public void detailsFailsWithInvalidToken() throws Exception {
-        UserVault user = savedUser();
-        GiftCard card = savedCard();
-        Merchant merchant = savedMerchant();
-        UUID token = UUID.fromString( loginOk( user ) );
-
-        redeemOk( token, card.getCode() );
-        chargeOk( merchant.getCode(), card.getCode(), 1, FIRST_CHARGE );
-
+        chargeOk( merchant.getCode(), card.getCode(), 1, firstCharge);
         detailsFails( UUID.randomUUID(), card.getCode() );
     }
 
     @Test public void detailsFailsWithInvalidCardId() throws Exception {
-        UserVault user = savedUser();
-        GiftCard card = savedCard();
-        Merchant merchant = savedMerchant();
-        UUID token = UUID.fromString( loginOk( user ) );
-
-        redeemOk( token, card.getCode() );
-        chargeOk( merchant.getCode(), card.getCode(), 1, FIRST_CHARGE );
-
-        detailsFails( token, invalid_code );
+        chargeOk( merchant.getCode(), card.getCode(), 1, firstCharge);
+        detailsFails( token, invalidCode);
     }
 
     @Test public void chargeFailsWithInvalidMerchant() throws Exception {
-        UserVault user = savedUser();
-        GiftCard card = savedCard();
-        UUID token = UUID.fromString( loginOk( user ) );
-
-        redeemOk( token, card.getCode() );
-        chargeFails( invalidMerchant, card.getCode(), 1, FIRST_CHARGE );
+        chargeFails( invalidMerchant, card.getCode(), 1, firstCharge);
     }
 
     @Test public void chargeFailsWithInvalidCardId() throws Exception {
-        UserVault user = savedUser();
-        GiftCard card = savedCard();
-        Merchant merchant = savedMerchant();
-        UUID token = UUID.fromString( loginOk( user ) );
-
-        redeemOk( token, card.getCode() );
-        chargeFails( merchant.getCode(), invalid_code, 1, FIRST_CHARGE );
+        chargeFails( merchant.getCode(), invalidCode, 1, firstCharge);
     }
 
     @Test public void chargeFailsWithInvalidAmount() throws Exception {
-        UserVault user = savedUser();
-        GiftCard card = savedCard();
-        Merchant merchant = savedMerchant();
-        UUID token = UUID.fromString( loginOk( user ) );
-
-        redeemOk( token, card.getCode() );
-        chargeFails( merchant.getCode(), card.getCode(), INITIAL_BALANCE + 1, FIRST_CHARGE );
+        chargeFails( merchant.getCode(), card.getCode(), initialBalance + 1, firstCharge);
     }
 
     private UserVault savedUser() {
@@ -247,7 +202,7 @@ public class GiftCardControllerTest {
     }
 
     private GiftCard savedCard() {
-        return cardService.save( EntityDrawer.someGiftCard( INITIAL_BALANCE ) );
+        return giftCardService.save( EntityDrawer.someGiftCard(initialBalance) );
     }
 
     private Merchant savedMerchant() {
