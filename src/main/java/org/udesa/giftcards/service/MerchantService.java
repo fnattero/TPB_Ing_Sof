@@ -13,7 +13,7 @@ public class MerchantService extends ModelService<Merchant, MerchantRepository> 
     }
 
     @Transactional(readOnly = true)
-    public Merchant getByCode(String code) {
+    public Merchant findByCode(String code) {
         return repository.findByCode(code)
                 .orElseThrow(() -> new RuntimeException("InvalidMerchant"));
     }

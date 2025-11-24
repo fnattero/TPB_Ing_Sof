@@ -35,11 +35,17 @@ public class MerchantServiceTest extends ModelServiceTest<Merchant, MerchantServ
         service.deleteItemWithPrefix("M_");
     }
 
-    @Test public void getByCodeReturnsMerchant() {
-        assertEquals(merchant, service.getByCode(merchant.getCode()));
+    @Test public void findByCodeReturnsMerchant() {
+        assertEquals(merchant, service.findByCode(merchant.getCode()));
     }
 
+    @Test public void deleteItemWithPrefixDeletesUser() {
+        service.deleteItemWithPrefix("M_");
+        assertThrows(RuntimeException.class, () -> service.findByCode(merchant.getCode()));
+    }
+
+
     @Test public void unknownCodeThrows() {
-        assertThrows(RuntimeException.class, () -> service.getByCode(invalidMerchantCode));
+        assertThrows(RuntimeException.class, () -> service.findByCode(invalidMerchantCode));
     }
 }

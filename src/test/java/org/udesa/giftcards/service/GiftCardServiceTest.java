@@ -113,4 +113,9 @@ public class GiftCardServiceTest extends ModelServiceTest<GiftCard, GiftCardServ
         assertThrows(RuntimeException.class, () -> service.charge(card.getCode(), chargeAmount, chargeDescription));
         assertEquals(initialGiftCardBalance, service.findByCode(card.getCode()).getBalance());
     }
+
+    @Test public void deleteItemWithPrefixDeletesUser() {
+        service.deleteItemWithPrefix("GC");
+        assertThrows(RuntimeException.class, () -> service.findByCode(card.getCode()));
+    }
 }

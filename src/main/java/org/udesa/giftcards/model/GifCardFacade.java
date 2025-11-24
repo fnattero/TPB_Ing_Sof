@@ -41,7 +41,7 @@ public class GifCardFacade {
     }
 
     public void charge( String merchantKey, String cardId, int amount, String description ) {
-        merchantService.getByCode( merchantKey );
+        merchantService.findByCode( merchantKey );
         giftCardService.charge( cardId, amount, description );
     }
 

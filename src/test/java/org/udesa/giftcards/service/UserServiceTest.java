@@ -39,6 +39,11 @@ public class UserServiceTest extends ModelServiceTest<UserVault, UserService> {
         assertEquals(user, service.findByName(user.getName()));
     }
 
+    @Test public void deleteItemWithPrefixDeletesUser() {
+        service.deleteItemWithPrefix("User");
+        assertThrows(RuntimeException.class, () -> service.findByName(user.getName()));
+    }
+
     @Test public void unknownNameThrows() {
         assertThrows(RuntimeException.class, () -> service.findByName(invalidUser));
     }

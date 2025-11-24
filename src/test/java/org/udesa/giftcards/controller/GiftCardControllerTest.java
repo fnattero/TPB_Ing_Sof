@@ -82,7 +82,6 @@ public class GiftCardControllerTest {
         userService.deleteItemWithPrefix("User");
         merchantService.deleteItemWithPrefix("M_");
 
-        // ver el swagger
         // ver el h2
     }
 
