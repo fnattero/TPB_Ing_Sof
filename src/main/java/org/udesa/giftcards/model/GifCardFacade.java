@@ -15,7 +15,6 @@ import org.udesa.giftcards.service.UserService;
 @Service
 public class GifCardFacade {
     public static final String InvalidUser = "InvalidUser";
-    public static final String InvalidMerchant = "InvalidMerchant";
     public static final String InvalidToken = "InvalidToken";
 
     @Autowired private GiftCardService giftCardService;
