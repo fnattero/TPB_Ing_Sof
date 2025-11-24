@@ -17,5 +17,4 @@ public class UserService extends ModelService<UserVault, UserRepository> {
         return repository.findByName(name)
                 .orElseThrow(() -> new RuntimeException("InvalidUser"));
     }
-
 }
